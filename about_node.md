@@ -77,7 +77,7 @@
 
 
 
- 参考
+# 参考
  - http://nodejs.jp/nodejs.org_ja/about/
- - Node.js入門
- - はじめてのNode.js
+ - 【書籍】Node.js入門
+ - 【書籍】はじめてのNode.js
