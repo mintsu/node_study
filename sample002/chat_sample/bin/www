@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+var debug = require('debug')('count_sample');
+var app = require('../app');
+
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+var io = require("socket.io").listen(server);
+var count = 0;
+
+io.sockets.on("connection", function(socket) {
+    // コネクションが来たら カウント+1
+    count++;
+    console.log("count:" + count);
+
+    // 全体にcountを送る
+    io.sockets.emit("count", count);
+
+    socket.on("chat", function(data) {
+        console.log(data);
+        io.sockets.emit("msg", data);
+    });
+
+    socket.on("disconnect", function() {
+        // 接続が切れたのでカウント-1
+        count--;
+        console.log("count:" + count);
+        // 全体にcountを送る
+        io.sockets.emit("count", count);
+    });
+});

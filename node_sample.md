@@ -151,4 +151,102 @@ io.sockets.on("connection", function(socket) {
   </body>
 </html>
 ```
+### 起動
+```sh
+$ npm test
+```
+http://localhost:12345/
+
+
+###チャット
+#### サーバ側
+./bin/www
+```javasript
+#!/usr/bin/env node
+var debug = require('debug')('count_sample');
+var app = require('../app');
+
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+var io = require("socket.io").listen(server);
+var count = 0;
+
+io.sockets.on("connection", function(socket) {
+    // コネクションが来たら カウント+1
+    count++;
+    console.log("count:" + count);
+
+    // 全体にcountを送る
+    io.sockets.emit("count", count);
+
+    socket.on("chat", function(data) {
+        console.log(data);
+        io.sockets.emit("msg", data);
+    });
+
+    socket.on("disconnect", function() {
+        // 接続が切れたのでカウント-1
+        count--;
+        console.log("count:" + count);
+        // 全体にcountを送る
+        io.sockets.emit("count", count);
+    });
+});
+```
+ - io.socket.emit (全員に送信)
+ - socket.emit (このソケットに送信)
+ - socket.broadcast.emit (このソケット以外の全員に送信)
+
+
+#### クライアント側
+./views/index.ejs
+```javascript
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = new io.connect();
+
+      socket.on("count", function(data) {
+        $("#count").html(data);
+      });
+
+      socket.on("msg", function(data) {
+        console.log(data);
+        $("#chat").append("<li>" + data.text + "</li>");
+      });
+
+      $(function() {
+        $("#send").on("click", function() {
+            var text = $("#text").val();
+            socket.emit("chat",{"text": text});
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <p>現在の閲覧者数<span id="count"></span>人</p>
+    <p><input id="send" type="button" value="送信"></p>
+    <p><input id="text" type="text"></p>
+    <div id="chat">
+
+    </div>
+  </body>
+</html>
+```
+#### 起動
+```sh
+$ npm test
+```
+http://localhost:12345/
 
