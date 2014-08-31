@@ -1,6 +1,11 @@
 # Node.js
 
 # インストール
+## epelを使えるようにする
+```
+$ wget http://ftp.riken.jp/Linux/fedora/epel/6/x86_64/epel-release-6-8.noarch.rpm
+$ sudo rpm -Uvh epel-release-6-8.noarch.rpm
+```
 ```sh
 $ sudo yum install nodejs npm --enablerepo=epel
 ```
