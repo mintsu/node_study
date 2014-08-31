@@ -76,13 +76,13 @@ package.jsonはこのプロジェクトのバージョン情報や依存パッ�
 今回はsocket.ioというモジュールを使うので追記している
 
 ```
-npm install
+$sudo npm install
 ```
 npm install すると依存モジュールがローカルにインストールされる。
 
 一度起動してみる
 ```
-npm install
+$ npm test
 ```
 http://localhost:12345/
 
@@ -95,5 +95,60 @@ http://localhost:12345/
 #### サーバ側
 ./bin/www
 ```javascript
+#!/usr/bin/env node
+var debug = require('debug')('count_sample');
+var app = require('../app');
 
+app.set('port', process.env.PORT || 3000);
+
+var server = app.listen(app.get('port'), function() {
+  debug('Express server listening on port ' + server.address().port);
+});
+
+var io = require("socket.io").listen(server);
+var count = 0;
+
+io.sockets.on("connection", function(socket) {
+    // コネクションが来たら カウント+1
+    count++;
+    console.log("count:" + count);
+
+    // 全体にcountを送る
+    io.sockets.emit("count", count);
+
+
+    socket.on("disconnect", function() {
+        // 接続が切れたのでカウント-1
+        count--;
+        console.log("count:" + count);
+        // 全体にcountを送る
+        io.sockets.emit("count", count);
+    });
+});
 ```
+#### クライアント側
+./views/index.ejs
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= title %></title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      var socket = new io.connect();
+
+      socket.on("count", function(data) {
+        $("#count").html(data);
+      });
+    </script>
+  </head>
+  <body>
+    <h1><%= title %></h1>
+    <p>Welcome to <%= title %></p>
+    <p>現在の閲覧者数<span id="count"></span>人</p>
+  </body>
+</html>
+```
+
